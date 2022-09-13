@@ -1,0 +1,45 @@
+[package]
+name = "actix_realworld_example"
+version = "0.1.0"
+authors = ["星光 <starshine@aili.moe>"]
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+# 基本
+futures-util = "^0.3"
+actix-web = { version = "^4.2", default-features = false, features = ["macros"] }
+actix-http = "^3.2.1"
+actix-cors = "^0.6"
+actix-web-httpauth = "^0.8"
+tokio = { version = "^1", features = ["full"] }
+once_cell = "^1.14"
+argon2 = "~0.4.1"
+rand_core = { version = "~0.6.3", features = ["std"] }
+
+#序列化
+serde = { version = "^1.0", features = ["derive"] }
+serde_json = "^1.0"
+serde_yaml = "^0.9"
+derive_more = "^0.99"
+
+#日志
+log = "^0.4"
+fast_log = {version = "~1.5" , features = ["zip"]}
+
+# rbatis
+rbs = "~0.1"
+rbatis = { version = "~4",features = ["debug_mode"]}
+rbdc-pg = "~0.1"
+
+#读取内网 ip
+local_ipaddress = "^0.1"
+
+#JWT
+jsonwebtoken = "^8"
+serde_urlencoded = "^0.7"
+
+[profile.dev]
+
+[profile.release]

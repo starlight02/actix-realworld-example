@@ -1,0 +1,6 @@
+BIND_HOST: "0.0.0.0"
+PORT: 8888
+RUST_LOG: "actix_realworld_example: debug,actix_web: debug"
+DB_URL: "postgresql://postgres:f2e9b983-a8ce-4274-bbaa-87f5abc715cf@10.10.1.1:55432/real_world?options=-c%20TimeZone=Asia/Hong_Kong"
+TOKEN_SECRET: "A40CDF01-0766-4C71-A7D0-8727EDFE8C78"
+TOKEN_ISSUER: "starshine@aili.moe"
