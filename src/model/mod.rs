@@ -1,3 +1,6 @@
+use actix_http::body::BoxBody;
+use actix_web::{HttpRequest, HttpResponse, Responder};
+use actix_web::http::header::ContentType;
 use crate::model::user::{NewUser, User};
 
 pub mod user;
@@ -37,4 +40,18 @@ pub struct ResponseMessage {
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
 pub struct ResponseError {
     pub body: Vec<String>,
+}
+
+// 为返回体实现 actix Responder
+impl Responder for ResponseData {
+    type Body = BoxBody;
+
+    fn respond_to(self, _request: &HttpRequest) -> HttpResponse<Self::Body> {
+        let body = serde_json::to_string(&self).unwrap();
+
+        // Create HttpResponse and set Content Type
+        HttpResponse::Ok()
+            .content_type(ContentType::json())
+            .body(body)
+    }
 }

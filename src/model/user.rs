@@ -5,6 +5,7 @@ pub struct UserTable {
     pub uid: u32,
     pub email: String,
     pub username: String,
+    pub password: String,
     pub nickname: Option<String>,
     pub bio: Option<String>,
     pub images: Option<String>,
@@ -31,7 +32,7 @@ pub struct NewUser {
     pub password: String,
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, serde::Serialize, serde::Deserialize)]
 pub struct UpdateUser {
     pub uid: u32,
     pub email: Option<String>,
@@ -49,5 +50,4 @@ pub struct LoginCredentials {
     pub password: String,
 }
 
-
-crud!(User {}, "user");
+crud!(UpdateUser {}, "user");

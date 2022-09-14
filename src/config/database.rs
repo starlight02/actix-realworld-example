@@ -11,7 +11,7 @@ pub fn init_pool() -> Rbatis {
 
     #[cfg(not(debug_assertions))]
     let db_url = {
-        env!("ACTIX_DB_URL", "Environment variable \"ACTIX_DB_URL\" not found!")
+        env!("ACTIX_DB_URL", r#"Environment variable "ACTIX_DB_URL" not found!"#)
     };
 
     let rbatis = Rbatis::new();
