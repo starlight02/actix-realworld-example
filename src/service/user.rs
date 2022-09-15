@@ -1,6 +1,6 @@
 use rbatis::{Error, Rbatis};
 use rbs::to_value;
-use crate::model::user::{NewUser, User, UserTable};
+use crate::model::user::{NewUser, UpdateUser, User, UserTable};
 
 /// 通过 uid 查询正常用户
 pub async fn select_user_by_uid(rb: &Rbatis, uid: u32) -> Result<Option<User>, Error> {
@@ -38,7 +38,28 @@ pub async fn insert_new_user(rb: &Rbatis, u: &NewUser) -> Result<u64, Error> {
     Ok(exec_result.rows_affected)
 }
 
+// 更新一条用户记录
+pub async fn update_user(rb: &Rbatis, u: &UpdateUser) -> Result<u64, Error> {
+    let exec_result = rb.exec(
+        r#"
+        UPDATE "user"
+        SET email = ?, username = ?, password = ?, nickname = ?, bio =?, images = ?, deleted = ?
+        WHERE uid = ?;
+        "#,
+        vec![
+            to_value!(u.email.as_ref()),
+            to_value!(u.username.as_ref()),
+            to_value!(u.password.as_ref()),
+            to_value!(u.nickname.as_ref()),
+            to_value!(u.bio.as_ref()),
+            to_value!(u.images.as_ref()),
+            to_value!(u.deleted),
+            to_value!(u.uid),
+        ],
+    ).await?;
 
+    Ok(exec_result.rows_affected)
+}
 // use actix_web::{
 //     Either,
 //     get, post, put, delete,

@@ -6,7 +6,7 @@ use crate::model::{
     RequestPayload, ResponseData,
     user::{NewUser, User, UpdateUser},
 };
-use crate::service::user::{insert_new_user, is_uname_already_exists, select_user_by_email, select_user_by_uid};
+use crate::service::user::{insert_new_user, is_uname_already_exists, select_user_by_email, select_user_by_uid, update_user};
 use crate::util::error::CustomError;
 
 #[get("/{uid}")]
@@ -76,18 +76,18 @@ pub async fn sign_up(data: web::Data<Rbatis>, payload: web::Json<RequestPayload>
             if is_existing {
                 return Err(CustomError::ValidationError { message: "Username already exists".to_owned() });
             }
+            // 重新激活账号
             let user = UpdateUser {
                 uid: u.uid,
                 email: Some(u.email.to_string()),
                 username: Some(username.to_owned()),
                 password: Some(password.to_owned()),
-                nickname: None,
-                bio: None,
-                images: None,
-                deleted: None,
+                nickname: Some("".to_owned()),
+                bio: Some("".to_owned()),
+                images: Some("".to_owned()),
+                deleted: Some(false),
             };
-            // FIXME
-            let result = UpdateUser::update_by_column(rbatis, &user, "uid")
+            let result = update_user(rbatis, &user)
                 .await.map_err(|e| CustomError::InternalError { message: e.to_string() })?;
             println!("update result {:#?}", result);
 
