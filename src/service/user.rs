@@ -43,16 +43,16 @@ pub async fn update_user(rb: &Rbatis, u: &UpdateUser) -> Result<u64, Error> {
     let exec_result = rb.exec(
         r#"
         UPDATE "user"
-        SET email = ?, username = ?, password = ?, nickname = ?, bio =?, images = ?, deleted = ?
+        SET email = ?, username = ?, password = ?, nickname = ?, bio =?, image = ?, deleted = ?
         WHERE uid = ?;
         "#,
         vec![
-            to_value!(u.email.as_ref()),
-            to_value!(u.username.as_ref()),
-            to_value!(u.password.as_ref()),
-            to_value!(u.nickname.as_ref()),
-            to_value!(u.bio.as_ref()),
-            to_value!(u.images.as_ref()),
+            to_value!(&u.email),
+            to_value!(&u.username),
+            to_value!(&u.password),
+            to_value!(&u.nickname),
+            to_value!(&u.bio),
+            to_value!(&u.image),
             to_value!(u.deleted),
             to_value!(u.uid),
         ],

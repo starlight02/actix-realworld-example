@@ -7,7 +7,7 @@ use actix_web::{
 use actix_web::http::StatusCode;
 use log::info;
 use actix_realworld_example::{database, app_log, router, CONFIG};
-use actix_realworld_example::middleware::error::format_response;
+use actix_realworld_example::middleware::error;
 
 #[tokio::main]
 async fn main() -> io::Result<()> {
@@ -36,7 +36,8 @@ async fn main() -> io::Result<()> {
             .wrap(Cors::permissive())
             // 错误处理中间件
             .wrap(
-                ErrorHandlers::new().handler(StatusCode::BAD_REQUEST, format_response)
+                ErrorHandlers::new()
+                .handler(StatusCode::BAD_REQUEST, error::format_response)
             )
             // 配置路由
             .configure(router::router)

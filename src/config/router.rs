@@ -1,11 +1,12 @@
 use actix_web::web::{self, ServiceConfig};
 use crate::controller::user;
+use crate::controller::auth;
 
 pub fn router(config: &mut ServiceConfig) {
     config.service(
         web::scope("/api")
             .service(
-                web::scope("/users").service(user::sign_up)
+                web::scope("/users").service(auth::sign_up)
             )
             .service(
                 web::scope("/user").service(user::get_user_info)

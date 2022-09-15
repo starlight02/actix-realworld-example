@@ -5,14 +5,14 @@ use crate::model::user::{NewUser, User};
 
 pub mod user;
 
-#[derive(Debug, PartialEq, serde::Serialize, serde::Deserialize)]
+#[derive(Debug, serde::Serialize, serde::Deserialize)]
 pub struct Claims {
     // 必要，过期时间，UTC 时间戳
     pub exp: usize,
     // 可选，签发人
-    pub iss: &'static str,
+    pub iss: String,
     pub id: u32,
-    pub uname: &'static str,
+    pub email: String,
 }
 
 // 请求的载荷

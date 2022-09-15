@@ -26,9 +26,7 @@ pub fn format_response<B>(mut response: dev::ServiceResponse<B>) -> actix_web::R
             errors: ResponseError { body: vec![error_message] }
         }
     ).unwrap();
-    let new_response = response.map_body(|_head, _body| {
-        BoxBody::new(body)
-    });
+    let new_response = response.map_body(move |_head, _body| BoxBody::new(body));
 
     Ok(ErrorHandlerResponse::Response(new_response.map_into_right_body()))
 }

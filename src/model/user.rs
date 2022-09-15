@@ -40,7 +40,7 @@ pub struct UpdateUser {
     pub nickname: Option<String>,
     pub password: Option<String>,
     pub bio: Option<String>,
-    pub images: Option<String>,
+    pub image: Option<String>,
     pub deleted: Option<bool>,
 }
 
