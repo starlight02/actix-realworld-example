@@ -1,4 +1,5 @@
 use actix_web::web::{self, ServiceConfig};
+use actix_web_httpauth::middleware::HttpAuthentication;
 use crate::controller::user;
 use crate::controller::auth;
 
@@ -10,6 +11,7 @@ pub fn router(config: &mut ServiceConfig) {
             )
             .service(
                 web::scope("/user").service(user::get_user_info)
+                    .wrap(HttpAuthentication::with_fn())
             )
     );
     // .service(

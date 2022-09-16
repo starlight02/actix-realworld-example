@@ -22,11 +22,12 @@ use argon2::{
 use fastdate::{DateTime, DurationFrom};
 use jsonwebtoken::{Algorithm, EncodingKey, Header};
 use log::debug;
-use crate::CONFIG;
-use crate::config::ED25519_KEY;
-use crate::model::Claims;
-use crate::model::user::User;
-use crate::util::error::CustomError;
+use crate::{
+    CONFIG,
+    config::ED25519_KEY,
+    model::{Claims, user::User},
+    util::error::CustomError,
+};
 
 /// 获取 PHC 字符串
 pub fn get_phc_string(password: &str) -> String {
