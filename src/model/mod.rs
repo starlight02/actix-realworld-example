@@ -5,11 +5,11 @@ use actix_web::{
     error::{ErrorUnauthorized},
 };
 use futures_util::future;
-
-use crate::model::user::{NewUser, User};
 use crate::util::error::CustomError::UnauthorizedError;
 
 pub mod user;
+
+pub use user::*;
 
 #[derive(Debug, serde::Serialize, serde::Deserialize)]
 pub struct Claims {
@@ -30,6 +30,11 @@ pub struct RealWorldToken {
 #[derive(Debug, serde::Deserialize)]
 pub struct RequestPayload {
     pub user: NewUser,
+}
+
+#[derive(Debug, serde::Deserialize)]
+pub struct RequestCredentials {
+    pub user: LoginCredentials,
 }
 
 // 统一的响应
@@ -67,7 +72,7 @@ impl Responder for ResponseData {
     }
 }
 
-// 为 token 实现提取器
+// 为 token 实现 actix-web 提取器
 impl FromRequest for RealWorldToken {
     type Error = Error;
     type Future = future::Ready<Result<Self, Self::Error>>;

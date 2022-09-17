@@ -3,11 +3,13 @@ use actix_web::{
     http::{header::ContentType, StatusCode},
     error, HttpResponse,
 };
+use actix_web::http::header;
+use log::{debug, info};
 use crate::model::{ResponseError, ResponseMessage};
 
 #[derive(Debug, derive_more::Display, derive_more::Error)]
 pub enum CustomError {
-    #[display(fmt = "validation error: {}", message)]
+    #[display(fmt = "Validation error: {}", message)]
     ValidationError { message: String },
 
     #[display(fmt = "{}: {}", error, message)]
@@ -17,11 +19,12 @@ pub enum CustomError {
         message: String,
     },
 
-    #[display(fmt = "internal error: {}", message)]
+    #[display(fmt = "Internal error: {}", message)]
     InternalError { message: String },
 }
 
 // 为自定义错误实现 ResponseError 以可返回 HTTP 错误
+// 这里 Clion 显示错误，但实际上 build 是没有问题的
 impl error::ResponseError for CustomError {
     fn status_code(&self) -> StatusCode {
         match *self {

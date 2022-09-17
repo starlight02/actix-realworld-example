@@ -1,17 +1,20 @@
 use actix_web::web::{self, ServiceConfig};
 use actix_web_httpauth::middleware::HttpAuthentication;
-use crate::controller::user;
-use crate::controller::auth;
+use crate::controller::{user, auth};
+use crate::middleware;
 
 pub fn router(config: &mut ServiceConfig) {
     config.service(
         web::scope("/api")
             .service(
-                web::scope("/users").service(auth::sign_up)
+                web::scope("/users")
+                    .service(auth::sign_up)
+                    .service(auth::login)
             )
             .service(
-                web::scope("/user").service(user::get_user_info)
-                    .wrap(HttpAuthentication::with_fn())
+                web::scope("/user")
+                    .wrap(HttpAuthentication::with_fn(middleware::validator))
+                    .service(user::get_user_info)
             )
     );
     // .service(

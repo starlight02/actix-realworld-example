@@ -27,18 +27,18 @@ derive_more = "^0.99"
 
 #日志
 log = "^0.4"
-fast_log = {version = "~1.5" , features = ["zip"]}
+fast_log = { version = "~1.5", features = ["zip"] }
 
 # rbatis
 rbs = "~0.1"
-rbatis = { version = "~4",features = ["debug_mode"]}
+rbatis = { version = "~4", features = ["debug_mode"] }
 rbdc-pg = "~0.1"
 
 #读取内网 ip
 local_ipaddress = "^0.1"
 
 #JWT
-jsonwebtoken = "^8"
+jsonwebtoken = { version = "^8", features = ["use_pem"] }
 serde_urlencoded = "^0.7"
 
 [profile.dev]

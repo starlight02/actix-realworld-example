@@ -1,16 +1,3 @@
-// use actix_web::dev::ServiceRequest;
-// use actix_web::Error;
-// use actix_web::http::header;
-// use actix_web_httpauth::extractors::bearer::BearerAuth;
-//
-//
-// use jsonwebtoken::{encode, Header, EncodingKey, Algorithm, Validation, decode, DecodingKey};
-//
-// use crate::config::CONFIG;
-// use crate::model::Claims;
-// // use crate::model::user::User;
-// use crate::util::error::CustomError;
-
 use std::time::Duration;
 use argon2::{
     Argon2,
@@ -20,12 +7,12 @@ use argon2::{
     },
 };
 use fastdate::{DateTime, DurationFrom};
-use jsonwebtoken::{Algorithm, EncodingKey, Header};
+use jsonwebtoken::{Algorithm, Header, Validation};
 use log::debug;
 use crate::{
     CONFIG,
-    config::ED25519_KEY,
-    model::{Claims, user::User},
+    config::{ED25519_PRIVATE_KEY, ED25519_PUBLIC_KEY},
+    model::{Claims},
     util::error::CustomError,
 };
 
@@ -45,40 +32,35 @@ pub fn verify_password(password: &str, password_hash: &str) -> bool {
     Argon2::default().verify_password(password.as_bytes(), &parsed_hash).is_ok()
 }
 
-
-// // 身份验证具体处理方法
-// pub async fn validator(req: ServiceRequest, credentials: BearerAuth) -> Result<ServiceRequest, (Error, ServiceRequest)> {
-//     let token = credentials.token();
-//     let mut validation = Validation::new(Algorithm::HS384);
-//     validation.set_issuer(&[&CONFIG.token_issuer]);
-//     let result = decode::<Claims>(token, &DecodingKey::from_secret(CONFIG.token_secret.as_ref()), &validation)
-//         .map_err(|e| {
-//             let host = &*req.headers().get(header::HOST).unwrap().to_str().unwrap();
-//             CustomError::UnauthorizedError {
-//                 realm: host,
-//                 error: "Unauthorized",
-//                 message: &*e.to_string(),
-//             }
-//         })?;
-//     debug!("{:?}", result.claims);
-//
-//     Ok(req)
-// }
-
 // 签发 token
-pub fn sign_token(user: &User) -> Result<String, actix_web::Error> {
-    let next_week = DateTime::utc() + Duration::from_day(7);
-    debug!("过期时间 ==> {:?}", next_week);
+pub fn sign_token(id: u32, email: String) -> Result<String, actix_web::Error> {
+    let next_week = DateTime::now() + Duration::from_day(7);
+    debug!("过期时间 ==> {:#?}", next_week.to_string());
 
     let claims = Claims {
         exp: next_week.unix_timestamp() as usize,
         iss: CONFIG.TOKEN_ISSUER.to_owned(),
-        id: user.uid,
-        email: user.email.to_owned(),
+        id,
+        email,
     };
     let header = Header::new(Algorithm::EdDSA);
-    let token = jsonwebtoken::encode(&header, &claims, &ED25519_KEY)
-        .map_err(|e| CustomError::InternalError { message: e.to_string()})?;
+    let token = jsonwebtoken::encode(&header, &claims, &ED25519_PRIVATE_KEY)
+        .map_err(|e| CustomError::InternalError { message: e.to_string() })?;
 
     Ok(token)
+}
+
+// 验证 Token
+pub fn validate_token(token: &str, host: &str) -> Result<Claims, actix_web::Error> {
+    let mut validation = Validation::new(Algorithm::EdDSA);
+    validation.set_issuer(&[CONFIG.TOKEN_ISSUER.as_str()]);
+    let result = jsonwebtoken::decode::<Claims>(token, &ED25519_PUBLIC_KEY, &validation)
+        .map_err(|e| CustomError::UnauthorizedError {
+            realm: host.to_owned(),
+            error: "Unauthorized".to_owned(),
+            message: e.to_string(),
+        })?;
+    debug!("Token 的载荷 => {:#?}", &result.claims);
+
+    Ok(result.claims)
 }

@@ -1,17 +1,17 @@
 use std::borrow::{BorrowMut};
-use actix_web::{web, Responder, get, post, put, delete};
+use actix_web::{web, Responder, HttpRequest};
+use actix_web::http::header;
 use rbatis::{Rbatis};
+use rbatis::executor::RbatisRef;
 
 use crate::model::{
-    RequestPayload, ResponseData,
-    user::{NewUser, User, UpdateUser},
+    RequestCredentials, RequestPayload, ResponseData,
+    NewUser, User, UpdateUser,
 };
-use crate::model::user::LoginCredentials;
-use crate::service::user::{insert_new_user, is_uname_already_exists, select_user_by_email, update_user};
-use crate::util::error::CustomError;
-use crate::util::utils::get_phc_string;
+use crate::service;
+use crate::util::{self, error::CustomError};
 
-#[post("")]
+#[actix_web::post("")]
 pub async fn sign_up(data: web::Data<Rbatis>, payload: web::Json<RequestPayload>) -> impl Responder {
     let payload = payload.into_inner();
     let NewUser { email, username, password } = payload.user.to_owned();
@@ -22,28 +22,29 @@ pub async fn sign_up(data: web::Data<Rbatis>, payload: web::Json<RequestPayload>
     } else if password.is_empty() {
         return Err(CustomError::ValidationError { message: "`password` is required".to_owned() });
     };
-    let mut rbatis = data.get_ref();
+    let data = data.into_inner();
+    let mut rbatis = data.get_rbatis();
     let rbatis = rbatis.borrow_mut();
     // 先查询邮箱是否已注册
-    let user = select_user_by_email(rbatis, &email)
+    let user = service::select_user_by_email(rbatis, &email)
         .await.map_err(|e| CustomError::InternalError { message: e.to_string() })?;
 
     let user = match user {
         // 未注册
         None => {
             // 查询用户名是否重复
-            let is_existing = is_uname_already_exists(rbatis, &username)
+            let is_existing = service::is_uname_already_exists(rbatis, &username)
                 .await.map_err(|e| CustomError::InternalError { message: e.to_string() })?;
             if is_existing {
                 return Err(CustomError::ValidationError { message: "Username already exists".to_owned() });
             }
             let mut user = payload.user;
-            let phc = get_phc_string(user.password.as_str());
+            let phc = util::get_phc_string(user.password.as_str());
             user.password = phc;
             // 注册操作，插入后再查询
-            insert_new_user(rbatis, &user)
+            service::insert_new_user(rbatis, &user)
                 .await.map_err(|e| CustomError::InternalError { message: e.to_string() })?;
-            let user = select_user_by_email(rbatis, &email)
+            let user = service::select_user_by_email(rbatis, &email)
                 .await.map_err(|e| CustomError::InternalError { message: e.to_string() })?.unwrap();
 
             User {
@@ -63,12 +64,12 @@ pub async fn sign_up(data: web::Data<Rbatis>, payload: web::Json<RequestPayload>
                 return Err(CustomError::ValidationError { message: "Email is already registered".to_owned() });
             }
             //曾注册，后注销了账号
-            let is_existing = is_uname_already_exists(rbatis, &username)
+            let is_existing = service::is_uname_already_exists(rbatis, &username)
                 .await.map_err(|e| CustomError::InternalError { message: e.to_string() })?;
             if is_existing {
                 return Err(CustomError::ValidationError { message: "Username already exists".to_owned() });
             }
-            let phc = get_phc_string(u.password.as_str());
+            let phc = util::get_phc_string(u.password.as_str());
             // 重新激活账号
             let user = UpdateUser {
                 uid: u.uid,
@@ -80,7 +81,7 @@ pub async fn sign_up(data: web::Data<Rbatis>, payload: web::Json<RequestPayload>
                 image: Some("".to_owned()),
                 deleted: Some(false),
             };
-            update_user(rbatis, &user)
+            service::update_user(rbatis, &user)
                 .await.map_err(|e| CustomError::InternalError { message: e.to_string() })?;
 
             User {
@@ -98,12 +99,52 @@ pub async fn sign_up(data: web::Data<Rbatis>, payload: web::Json<RequestPayload>
     Ok(ResponseData { user: Some(user) })
 }
 
-#[post("/login")]
-pub async fn login(data: web::Data<Rbatis>, credentials: web::Json<LoginCredentials>) -> impl Responder {
-    let credentials = credentials.into_inner();
+#[actix_web::post("/login")]
+pub async fn login(request: HttpRequest, data: web::Data<Rbatis>, credentials: web::Json<RequestCredentials>) -> impl Responder {
+    let credentials = credentials.into_inner().user;
     let email = credentials.email.trim();
     let password = credentials.password.trim();
+    let host = request.headers().get(header::HOST).unwrap().to_str().unwrap();
+    if email.is_empty() || password.is_empty() {
+        return Err(CustomError::UnauthorizedError {
+            realm: host.to_owned(),
+            error: "Unauthorized".to_owned(),
+            message: "`email` and `password` is required".to_owned(),
+        });
+    }
+    let data = data.into_inner();
+    let rbatis = data.get_rbatis();
+    // let rbatis = rbatis.borrow_mut();
 
+    let user = service::select_user_by_email(rbatis, email)
+        .await.map_err(|e| CustomError::InternalError { message: e.to_string() })?;
+    if user.is_none() || user.is_some_and(|u| u.deleted) {
+        return Err(CustomError::UnauthorizedError {
+            realm: host.to_owned(),
+            error: "Unauthorized".to_owned(),
+            message: "Incorrect username or password".to_owned(),
+        });
+    }
+    let user = user.unwrap();
+    let is_verified = util::verify_password(password, &user.password);
+    if !is_verified {
+        return Err(CustomError::UnauthorizedError {
+            realm: host.to_owned(),
+            error: "Unauthorized".to_owned(),
+            message: "Incorrect username or password".to_owned(),
+        });
+    }
+    // 密码校验通过，签发 Token
+    let token = util::sign_token(user.uid, user.email.to_owned()).unwrap();
+    let user = Some(User {
+        uid: user.uid,
+        email: user.email,
+        username: user.username,
+        nickname: user.nickname,
+        bio: user.bio,
+        images: user.images,
+        token: Some(token),
+    });
 
-    ""
+    Ok(ResponseData { user })
 }
