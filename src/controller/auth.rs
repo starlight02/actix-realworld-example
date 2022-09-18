@@ -1,8 +1,6 @@
 use std::borrow::{BorrowMut};
-use actix_web::{web, Responder, HttpRequest};
-use actix_web::http::header;
-use rbatis::{Rbatis};
-use rbatis::executor::RbatisRef;
+use actix_web::{web, Responder, HttpRequest, http::header};
+use rbatis::{Rbatis, executor::RbatisRef};
 
 use crate::model::{
     RequestCredentials, RequestPayload, ResponseData,
@@ -15,12 +13,8 @@ use crate::util::{self, error::CustomError};
 pub async fn sign_up(data: web::Data<Rbatis>, payload: web::Json<RequestPayload>) -> impl Responder {
     let payload = payload.into_inner();
     let NewUser { email, username, password } = payload.user.to_owned();
-    if email.is_empty() {
-        return Err(CustomError::ValidationError { message: "`email` is required".to_owned() });
-    } else if username.is_empty() {
-        return Err(CustomError::ValidationError { message: "`username` is required".to_owned() });
-    } else if password.is_empty() {
-        return Err(CustomError::ValidationError { message: "`password` is required".to_owned() });
+    if email.is_empty() || username.is_empty() || password.is_empty() {
+        return Err(CustomError::ValidationError { message: "`email`,`username` and `password` is required".to_owned() });
     };
     let data = data.into_inner();
     let mut rbatis = data.get_rbatis();
@@ -76,9 +70,9 @@ pub async fn sign_up(data: web::Data<Rbatis>, payload: web::Json<RequestPayload>
                 email: Some(u.email.to_owned()),
                 username: Some(username.to_owned()),
                 password: Some(phc),
-                nickname: Some("".to_owned()),
-                bio: Some("".to_owned()),
-                image: Some("".to_owned()),
+                nickname: None,
+                bio: None,
+                image: None,
                 deleted: Some(false),
             };
             service::update_user(rbatis, &user)
@@ -104,10 +98,11 @@ pub async fn login(request: HttpRequest, data: web::Data<Rbatis>, credentials: w
     let credentials = credentials.into_inner().user;
     let email = credentials.email.trim();
     let password = credentials.password.trim();
-    let host = request.headers().get(header::HOST).unwrap().to_str().unwrap();
+
+    let origin = util::get_header_value_str(&request, header::REFERER, "");
     if email.is_empty() || password.is_empty() {
         return Err(CustomError::UnauthorizedError {
-            realm: host.to_owned(),
+            realm: origin.to_owned(),
             error: "Unauthorized".to_owned(),
             message: "`email` and `password` is required".to_owned(),
         });
@@ -120,7 +115,7 @@ pub async fn login(request: HttpRequest, data: web::Data<Rbatis>, credentials: w
         .await.map_err(|e| CustomError::InternalError { message: e.to_string() })?;
     if user.is_none() || user.is_some_and(|u| u.deleted) {
         return Err(CustomError::UnauthorizedError {
-            realm: host.to_owned(),
+            realm: origin.to_owned(),
             error: "Unauthorized".to_owned(),
             message: "Incorrect username or password".to_owned(),
         });
@@ -129,7 +124,7 @@ pub async fn login(request: HttpRequest, data: web::Data<Rbatis>, credentials: w
     let is_verified = util::verify_password(password, &user.password);
     if !is_verified {
         return Err(CustomError::UnauthorizedError {
-            realm: host.to_owned(),
+            realm: origin.to_owned(),
             error: "Unauthorized".to_owned(),
             message: "Incorrect username or password".to_owned(),
         });

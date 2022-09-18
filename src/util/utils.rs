@@ -1,4 +1,6 @@
 use std::time::Duration;
+use actix_http::header::{HeaderName};
+use actix_web::HttpRequest;
 use argon2::{
     Argon2,
     password_hash::{
@@ -8,7 +10,6 @@ use argon2::{
 };
 use fastdate::{DateTime, DurationFrom};
 use jsonwebtoken::{Algorithm, Header, Validation};
-use log::debug;
 use crate::{
     CONFIG,
     config::{ED25519_PRIVATE_KEY, ED25519_PUBLIC_KEY},
@@ -53,6 +54,7 @@ pub fn sign_token(id: u32, email: String) -> Result<String, actix_web::Error> {
 // 验证 Token
 pub fn validate_token(token: &str, host: &str) -> Result<Claims, actix_web::Error> {
     let mut validation = Validation::new(Algorithm::EdDSA);
+    validation.validate_exp = true;
     validation.set_issuer(&[CONFIG.TOKEN_ISSUER.as_str()]);
     let result = jsonwebtoken::decode::<Claims>(token, &ED25519_PUBLIC_KEY, &validation)
         .map_err(|e| CustomError::UnauthorizedError {
@@ -63,4 +65,13 @@ pub fn validate_token(token: &str, host: &str) -> Result<Claims, actix_web::Erro
     debug!("Token 的载荷 => {:#?}", &result.claims);
 
     Ok(result.claims)
+}
+
+// 从 HttpRequest 请求中获取指定的请求头
+pub fn get_header_value_str<'a>(request: &'a HttpRequest, name: HeaderName, default_value: &'a str) -> &'a str {
+    let result = request.headers().get(name);
+    if result.is_none() {
+        return default_value;
+    }
+    result.unwrap().to_str().unwrap()
 }

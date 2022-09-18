@@ -13,8 +13,9 @@ pub fn router(config: &mut ServiceConfig) {
             )
             .service(
                 web::scope("/user")
-                    .wrap(HttpAuthentication::with_fn(middleware::validator))
+                    .wrap(HttpAuthentication::with_fn(middleware::auth::validator))
                     .service(user::get_user_info)
+                    .service(user::get_current_user)
             )
     );
     // .service(

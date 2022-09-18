@@ -2,6 +2,8 @@
 #![feature(option_result_contains)]
 #[macro_use]
 extern crate rbatis;
+#[macro_use]
+extern crate log;
 
 pub mod config;
 pub mod controller;
