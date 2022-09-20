@@ -1,7 +1,8 @@
+use std::borrow::BorrowMut;
 use actix_web::{web, Responder};
-use rbatis::{Rbatis, executor::RbatisRef};
+use rbatis::{executor::RbatisRef, Rbatis};
 
-use crate::model::{Claims, RealWorldToken, ResponseData};
+use crate::model::{Claims, RealWorldToken, ResponseData, UpdateUser, UpdateUserPayload};
 use crate::service;
 use crate::util::error::CustomError::InternalError;
 
@@ -25,6 +26,25 @@ pub async fn get_current_user(data: web::Data<Rbatis>, token: RealWorldToken, cl
     let mut user = service::select_user_by_uid(rbatis, claims.id)
         .await.map_err(|e| InternalError { message: e.to_string() })?.unwrap();
     user.token = Some(token.token);
+
+    Ok(ResponseData { user: Some(user) })
+}
+
+#[actix_web::put("")]
+pub async fn update_user(data: web::Data<Rbatis>, user: web::Json<UpdateUserPayload>, claims: Claims) -> impl Responder {
+    let data = data.into_inner();
+    let mut rbatis = data.get_rbatis();
+    let rbatis = rbatis.borrow_mut();
+    let mut user = user.into_inner().user;
+    user.uid = claims.id;
+
+    let result = UpdateUser::update_by_column(rbatis, &user, "uid")
+        .await.map_err(|e| InternalError { message: e.to_string() })?;
+    if result.rows_affected < 1 {
+        return Err(InternalError { message: "Update may not be successful".to_owned() });
+    }
+    let user = service::select_user_by_uid(rbatis, claims.id)
+        .await.map_err(|e| InternalError { message: e.to_string() })?.unwrap();
 
     Ok(ResponseData { user: Some(user) })
 }

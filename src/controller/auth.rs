@@ -3,14 +3,14 @@ use actix_web::{web, Responder, HttpRequest, http::header};
 use rbatis::{Rbatis, executor::RbatisRef};
 
 use crate::model::{
-    RequestCredentials, RequestPayload, ResponseData,
+    LoginPayload, SignUpPayload, ResponseData,
     NewUser, User, UpdateUser,
 };
 use crate::service;
 use crate::util::{self, error::CustomError};
 
 #[actix_web::post("")]
-pub async fn sign_up(data: web::Data<Rbatis>, payload: web::Json<RequestPayload>) -> impl Responder {
+pub async fn sign_up(data: web::Data<Rbatis>, payload: web::Json<SignUpPayload>) -> impl Responder {
     let payload = payload.into_inner();
     let NewUser { email, username, password } = payload.user.to_owned();
     if email.is_empty() || username.is_empty() || password.is_empty() {
@@ -94,7 +94,7 @@ pub async fn sign_up(data: web::Data<Rbatis>, payload: web::Json<RequestPayload>
 }
 
 #[actix_web::post("/login")]
-pub async fn login(request: HttpRequest, data: web::Data<Rbatis>, credentials: web::Json<RequestCredentials>) -> impl Responder {
+pub async fn login(request: HttpRequest, data: web::Data<Rbatis>, credentials: web::Json<LoginPayload>) -> impl Responder {
     let credentials = credentials.into_inner().user;
     let email = credentials.email.trim();
     let password = credentials.password.trim();

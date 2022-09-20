@@ -50,4 +50,19 @@ pub struct LoginCredentials {
     pub password: String,
 }
 
-crud!(UpdateUser {}, "user");
+#[derive(Debug, serde::Deserialize)]
+pub struct LoginPayload {
+    pub user: LoginCredentials,
+}
+
+#[derive(Debug, serde::Deserialize)]
+pub struct SignUpPayload {
+    pub user: NewUser,
+}
+
+#[derive(Debug, serde::Deserialize)]
+pub struct UpdateUserPayload {
+    pub user: UpdateUser,
+}
+
+crud!(UpdateUser {}, r#""user""#);

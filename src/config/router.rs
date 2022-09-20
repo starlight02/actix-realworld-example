@@ -16,6 +16,7 @@ pub fn router(config: &mut ServiceConfig) {
                     .wrap(HttpAuthentication::with_fn(middleware::auth::validator))
                     .service(user::get_user_info)
                     .service(user::get_current_user)
+                    .service(user::update_user)
             )
     );
 }

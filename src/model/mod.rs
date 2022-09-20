@@ -22,17 +22,6 @@ pub struct RealWorldToken {
     pub token: String,
 }
 
-// 请求的载荷
-#[derive(Debug, serde::Deserialize)]
-pub struct RequestPayload {
-    pub user: NewUser,
-}
-
-#[derive(Debug, serde::Deserialize)]
-pub struct RequestCredentials {
-    pub user: LoginCredentials,
-}
-
 // 统一的响应
 #[derive(Debug, serde::Serialize, serde::Deserialize)]
 pub struct ResponseData {
