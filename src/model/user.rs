@@ -1,4 +1,5 @@
-use rbatis::rbdc::datetime::{FastDateTime};
+use actix_web::{HttpRequest, HttpResponse, Responder, http::header::ContentType};
+use rbatis::rbdc::datetime::FastDateTime;
 
 #[derive(Clone, Debug, serde::Deserialize, serde::Serialize)]
 pub struct UserTable {
@@ -65,4 +66,56 @@ pub struct UpdateUserPayload {
     pub user: UpdateUser,
 }
 
-crud!(UpdateUser {}, r#""user""#);
+#[derive(Debug, serde::Serialize, serde::Deserialize)]
+pub struct Profile {
+    pub username: String,
+    pub bio: Option<String>,
+    pub image: Option<String>,
+    pub following: bool,
+}
+
+#[derive(Debug, serde::Serialize, serde::Deserialize)]
+pub struct ResponseUser {
+    pub user: Option<User>,
+}
+
+// 为返回体实现 actix Responder
+impl Responder for ResponseUser {
+    type Body = actix_http::body::BoxBody;
+
+    fn respond_to(self, _request: &HttpRequest) -> HttpResponse<Self::Body> {
+        let body = serde_json::to_string(&self).unwrap();
+
+        // Create HttpResponse and set Content Type
+        HttpResponse::Ok()
+            .content_type(ContentType::json())
+            .body(body)
+    }
+}
+
+#[derive(Debug, serde::Serialize, serde::Deserialize)]
+pub struct ResponseProfile {
+    pub profile: Option<Profile>,
+}
+
+impl Responder for ResponseProfile {
+    type Body = actix_http::body::BoxBody;
+
+    fn respond_to(self, _request: &HttpRequest) -> HttpResponse<Self::Body> {
+        let body = serde_json::to_string(&self).unwrap();
+
+        HttpResponse::Ok()
+            .content_type(ContentType::json())
+            .body(body)
+    }
+}
+
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+pub struct UserFollow {
+    pub uid: u32,
+    pub follow_uid: u32,
+}
+
+impl_update!(UpdateUser {}, r#""user""#);
+impl_select!(UserTable {}, r#""user""#);
+impl_select!(UserFollow {select_follow(uid:u32, follow_uid:u32) -> Option => "`WHERE uid = #{uid} AND follow_uid = #{follow_uid}`"});

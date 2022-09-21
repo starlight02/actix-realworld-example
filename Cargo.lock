@@ -80,16 +80,15 @@ dependencies = [
 
 [[package]]
 name = "actix-router"
-version = "0.5.0"
+version = "0.5.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "eb60846b52c118f2f04a56cc90880a274271c489b2498623d58176f8ca21fa80"
+checksum = "d66ff4d247d2b160861fa2866457e85706833527840e4133f8f49aa423a38799"
 dependencies = [
  "bytestring",
- "firestorm",
  "http",
- "log",
  "regex",
  "serde",
+ "tracing",
 ]
 
 [[package]]
@@ -643,9 +642,9 @@ dependencies = [
 
 [[package]]
 name = "fast_log"
-version = "1.5.37"
+version = "1.5.39"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1409dca2c10a2e40e43516bedb0a3763e0b81016afb71a8a24ab91204468be3d"
+checksum = "4e9a3287dde973cb206f615bca6511b633d4feac133d7dc61c1b758ac2718de6"
 dependencies = [
  "crossbeam",
  "crossbeam-channel",
@@ -658,21 +657,15 @@ dependencies = [
 
 [[package]]
 name = "fastdate"
-version = "0.1.28"
+version = "0.1.29"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f6484e3e1ba4c84acb711c871876e1fae34d687533e476b56eaa094eaa0937fb"
+checksum = "3e30b3a4484809a259631820f5a0b9bc57c18514519ed55c34185788a9370f22"
 dependencies = [
  "libc",
  "once_cell",
  "serde",
  "winapi",
 ]
-
-[[package]]
-name = "firestorm"
-version = "0.5.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2c5f6c2c942da57e2aaaa84b8a521489486f14e75e7fa91dab70aba913975f98"
 
 [[package]]
 name = "flate2"
@@ -839,9 +832,9 @@ dependencies = [
 
 [[package]]
 name = "hashlink"
-version = "0.8.0"
+version = "0.8.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d452c155cb93fecdfb02a73dd57b5d8e442c2063bd7aac72f1bc5e4263a43086"
+checksum = "69fe1fcf8b4278d860ad0548329f892a3631fb63f82574df68275f34cdbe0ffa"
 dependencies = [
  "hashbrown",
 ]
@@ -973,9 +966,9 @@ checksum = "d4345964bb142484797b161f473a503a434de77149dd8c7427788c6e13379388"
 
 [[package]]
 name = "libc"
-version = "0.2.132"
+version = "0.2.133"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8371e4e5341c3a96db127eb2465ac681ced4c433e01dd0e938adbef26ba93ba5"
+checksum = "c0f80d65747a3e43d1596c7c5492d95d5edddaabd45a7fcdb02b95f644164966"
 
 [[package]]
 name = "local-channel"
@@ -1003,9 +996,9 @@ checksum = "f6a104730949fbc4c78e4fa98ed769ca0faa02e9818936b61032d2d77526afa9"
 
 [[package]]
 name = "lock_api"
-version = "0.4.8"
+version = "0.4.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9f80bf5aacaf25cbfc8210d1cfb718f2bf3b11c4c54e5afe36c236853a8ec390"
+checksum = "435011366fe56583b16cf956f9df0095b405b82d76425bc8981c0e22e60ec4df"
 dependencies = [
  "autocfg",
  "scopeguard",
@@ -1122,9 +1115,9 @@ dependencies = [
 
 [[package]]
 name = "once_cell"
-version = "1.14.0"
+version = "1.15.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2f7254b99e31cad77da24b08ebf628882739a608578bb1bcdfc1f9c21260d7c0"
+checksum = "e82dad04139b71a90c080c8463fe0dc7902db5192d939bd0950f074d014339e1"
 
 [[package]]
 name = "opaque-debug"
@@ -1345,9 +1338,9 @@ dependencies = [
 
 [[package]]
 name = "rbatis"
-version = "4.0.37"
+version = "4.0.39"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "cb00c8dadbc7c61f2a2861671974d24ba9afd4b60d57a69197c0f52e58609ed6"
+checksum = "d4873123f2455908dfb4758a535190353e48fd042243a70eed98356655289f6f"
 dependencies = [
  "crossbeam",
  "decimal",
@@ -1366,9 +1359,9 @@ dependencies = [
 
 [[package]]
 name = "rbatis-codegen"
-version = "4.0.21"
+version = "4.0.22"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "764b8801e4fc5fb6917dd19bd8aa9761eb61769602975d2cd7eaf666007cc98d"
+checksum = "9c70324ea2531708dc5f889f0ff5b02aeac683c9c12c864ef06f7c544227bb2c"
 dependencies = [
  "async-trait",
  "base64",
@@ -1384,9 +1377,9 @@ dependencies = [
 
 [[package]]
 name = "rbatis-macro-driver"
-version = "4.0.12"
+version = "4.0.14"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d201f09ea12a35fff021ad5a3716f34eb8ea8011142ce1197b18fd6948971006"
+checksum = "15e6f3f9fecd011a0ff5801ff1311b9b68da06505652dd2ecdc82f4cb8d3a6c4"
 dependencies = [
  "html_parser",
  "proc-macro2",
@@ -1428,9 +1421,9 @@ dependencies = [
 
 [[package]]
 name = "rbdc-pg"
-version = "0.1.18"
+version = "0.1.19"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3998e0d7fa9100de137bc82a5050aef2c25da815693f93b4996b9ffaf771071c"
+checksum = "4b1578c665add1ba2f7d4663fdf6a103c947c8a499041821ae3bf6e0898842c8"
 dependencies = [
  "atoi",
  "base64",
@@ -1772,9 +1765,9 @@ checksum = "6bdef32e8150c2a081110b42772ffe7d7c9032b606bc226c8260fd97e0976601"
 
 [[package]]
 name = "syn"
-version = "1.0.99"
+version = "1.0.100"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "58dbef6ec655055e20b86b15a8cc6d439cca19b667537ac6a1369572d151ab13"
+checksum = "52205623b1b0f064a4e71182c3b18ae902267282930c6d5462c91b859668426e"
 dependencies = [
  "proc-macro2",
  "quote",

@@ -1,6 +1,6 @@
 use actix_web::web::{self, ServiceConfig};
 use actix_web_httpauth::middleware::HttpAuthentication;
-use crate::controller::{user, auth};
+use crate::controller::{user, auth, profile};
 use crate::middleware;
 
 pub fn router(config: &mut ServiceConfig) {
@@ -17,6 +17,11 @@ pub fn router(config: &mut ServiceConfig) {
                     .service(user::get_user_info)
                     .service(user::get_current_user)
                     .service(user::update_user)
+            )
+            .service(
+                web::scope("/profiles")
+                    .service(profile::get_profile)
+                    .wrap(HttpAuthentication::with_fn(middleware::auth::validator))
             )
     );
 }

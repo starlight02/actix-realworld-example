@@ -23,7 +23,7 @@ pub async fn validator(req: ServiceRequest, credentials: RealWorldToken) -> Resu
             let error = UnauthorizedError {
                 realm: origin.to_owned(),
                 error: "Unauthorized".to_owned(),
-                message: "token expired".to_owned(),
+                message: "Token expired".to_owned(),
             };
             Err((error.into(), req))
         }
