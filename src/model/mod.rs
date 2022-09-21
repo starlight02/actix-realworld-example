@@ -1,14 +1,9 @@
-use actix_web::{
-    HttpRequest, HttpResponse, Responder,
-    http::header,
-};
-
 pub mod user;
 
 pub use user::*;
 
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
-pub struct Claims {
+pub struct Claim {
     // 必要，过期时间，UTC 时间戳
     pub exp: usize,
     // 可选，签发人
@@ -19,7 +14,8 @@ pub struct Claims {
 
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
 pub struct RealWorldToken {
-    pub token: String,
+    pub scheme: Option<String>,
+    pub token: Option<String>,
 }
 
 // 统一的错误响应

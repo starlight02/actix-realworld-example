@@ -2,11 +2,11 @@ use std::borrow::BorrowMut;
 use actix_web::{web, Responder};
 use rbatis::{executor::RbatisRef, Rbatis};
 
-use crate::model::{Claims, Profile, ResponseProfile, ResponseUser, UpdateUser, UpdateUserPayload, UserFollow, UserTable};
+use crate::model::{Claim, Profile, ResponseProfile, UserFollow, UserTable};
 use crate::util::error::CustomError::{InternalError};
 
 #[actix_web::get("/{username}")]
-pub async fn get_profile(path: web::Path<String>, data: web::Data<Rbatis>, claims: Claims) -> Result<impl Responder, actix_web::Error> {
+pub async fn get_profile(path: web::Path<String>, data: web::Data<Rbatis>, claims: Claim) -> Result<impl Responder, actix_web::Error> {
     let username = path.into_inner();
     let mut rbatis = data.get_rbatis();
     let rbatis = rbatis.borrow_mut();

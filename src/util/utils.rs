@@ -13,7 +13,7 @@ use jsonwebtoken::{Algorithm, Header, Validation};
 use crate::{
     CONFIG,
     config::{ED25519_PRIVATE_KEY, ED25519_PUBLIC_KEY},
-    model::{Claims},
+    model::{Claim},
     util::error::CustomError,
 };
 
@@ -38,7 +38,7 @@ pub fn sign_token(id: u32, email: String) -> Result<String, actix_web::Error> {
     let next_week = DateTime::now() + Duration::from_day(7);
     debug!("过期时间 ==> {:#?}", next_week.to_string());
 
-    let claims = Claims {
+    let claims = Claim {
         exp: next_week.unix_timestamp() as usize,
         iss: CONFIG.TOKEN_ISSUER.to_owned(),
         id,
@@ -52,11 +52,12 @@ pub fn sign_token(id: u32, email: String) -> Result<String, actix_web::Error> {
 }
 
 // 验证 Token
-pub fn validate_token(token: &str, host: &str) -> Result<Claims, actix_web::Error> {
+pub fn validate_token(token: &str, host: &str) -> Result<Claim, actix_web::Error> {
     let mut validation = Validation::new(Algorithm::EdDSA);
     validation.validate_exp = true;
     validation.set_issuer(&[CONFIG.TOKEN_ISSUER.as_str()]);
-    let result = jsonwebtoken::decode::<Claims>(token, &ED25519_PUBLIC_KEY, &validation)
+    // FIXME Why can't I validate the token expiry time here?
+    let result = jsonwebtoken::decode::<Claim>(token, &ED25519_PUBLIC_KEY, &validation)
         .map_err(|e| CustomError::UnauthorizedError {
             realm: host.to_owned(),
             error: "Unauthorized".to_owned(),

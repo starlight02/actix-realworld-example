@@ -2,7 +2,7 @@ use std::borrow::BorrowMut;
 use actix_web::{web, Responder};
 use rbatis::{executor::RbatisRef, Rbatis};
 
-use crate::model::{Claims, RealWorldToken, ResponseUser, UpdateUser, UpdateUserPayload};
+use crate::model::{Claim, RealWorldToken, ResponseUser, UpdateUser, UpdateUserPayload};
 use crate::service;
 use crate::util::error::CustomError::InternalError;
 
@@ -20,18 +20,18 @@ pub async fn get_user_info(data: web::Data<Rbatis>, path: web::Path<u32>) -> Res
 }
 
 #[actix_web::get("")]
-pub async fn get_current_user(data: web::Data<Rbatis>, token: RealWorldToken, claims: Claims) -> Result<impl Responder, actix_web::Error> {
+pub async fn get_current_user(data: web::Data<Rbatis>, token: RealWorldToken, claims: Claim) -> Result<impl Responder, actix_web::Error> {
     let data = data.into_inner();
     let rbatis = data.get_rbatis();
     let mut user = service::select_user_by_uid(rbatis, claims.id)
         .await.map_err(|e| InternalError { message: e.to_string() })?.unwrap();
-    user.token = Some(token.token);
+    user.token = token.token;
 
     Ok(ResponseUser { user: Some(user) })
 }
 
 #[actix_web::put("")]
-pub async fn update_user(data: web::Data<Rbatis>, user: web::Json<UpdateUserPayload>, claims: Claims) -> impl Responder {
+pub async fn update_user(data: web::Data<Rbatis>, user: web::Json<UpdateUserPayload>, claims: Claim) -> impl Responder {
     let data = data.into_inner();
     let mut rbatis = data.get_rbatis();
     let rbatis = rbatis.borrow_mut();
