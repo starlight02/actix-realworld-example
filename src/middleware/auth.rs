@@ -16,7 +16,6 @@ pub async fn validator(req: ServiceRequest, credentials: Option<RealWorldToken>)
         _ => {
             return Err((UnauthorizedError {
                 realm: origin.to_owned(),
-                error: "Unauthorized".to_owned(),
                 message: "Authentication required!".to_owned(),
             }.into(), req));
         },
@@ -28,19 +27,16 @@ pub async fn validator(req: ServiceRequest, credentials: Option<RealWorldToken>)
         Some("Token") => {},
         Some("") => return Err((UnauthorizedError {
             realm: origin.to_owned(),
-            error: "Unauthorized".to_owned(),
             message: "Missing authorization scheme".to_owned(),
         }.into(), req)),
         _ => return Err((UnauthorizedError {
             realm: origin.to_owned(),
-            error: "Unauthorized".to_owned(),
             message: "Invalid header value".to_owned(),
         }.into(), req)),
     };
     if token.is_none(){
         return Err((UnauthorizedError {
             realm: origin.to_owned(),
-            error: "Unauthorized".to_owned(),
             message: "Invalid header value".to_owned(),
         }.into(), req));
     }
@@ -57,7 +53,6 @@ pub async fn validator(req: ServiceRequest, credentials: Option<RealWorldToken>)
             debug!("Token 已过期！");
             let error = UnauthorizedError {
                 realm: origin.to_owned(),
-                error: "Unauthorized".to_owned(),
                 message: "Token expired".to_owned(),
             };
             Err((error.into(), req))

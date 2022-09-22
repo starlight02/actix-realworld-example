@@ -108,7 +108,6 @@ pub async fn login(request: HttpRequest, data: web::Data<Rbatis>, credentials: w
     if email.is_empty() || password.is_empty() {
         return Err(UnauthorizedError {
             realm: origin.to_owned(),
-            error: "Unauthorized".to_owned(),
             message: "`email` and `password` is required".to_owned(),
         });
     }
@@ -121,7 +120,6 @@ pub async fn login(request: HttpRequest, data: web::Data<Rbatis>, credentials: w
     if user.is_none() || user.is_some_and(|u| u.deleted) {
         return Err(UnauthorizedError {
             realm: origin.to_owned(),
-            error: "Unauthorized".to_owned(),
             message: "Incorrect username or password".to_owned(),
         });
     }
@@ -130,7 +128,6 @@ pub async fn login(request: HttpRequest, data: web::Data<Rbatis>, credentials: w
     if !is_verified {
         return Err(UnauthorizedError {
             realm: origin.to_owned(),
-            error: "Unauthorized".to_owned(),
             message: "Incorrect username or password".to_owned(),
         });
     }

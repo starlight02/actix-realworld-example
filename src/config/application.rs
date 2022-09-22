@@ -1,11 +1,9 @@
-#[derive(Debug, PartialEq, serde::Serialize, serde::Deserialize)]
+#[derive(Debug, serde::Serialize, serde::Deserialize)]
 pub struct ApplicationConfig {
     // actix 绑定的 host
     pub BIND_HOST: String,
     // actix 绑定的端口
     pub PORT: u32,
-    // 应用日志级别
-    pub RUST_LOG: String,
     // 数据库 host
     pub DB_URL: String,
     // 签名 token 的 secret

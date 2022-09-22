@@ -3,19 +3,15 @@ use actix_web::{
     http::{header::ContentType, StatusCode},
     error, HttpResponse,
 };
-use actix_web::http::header;
-use log::{debug, info};
-use crate::model::{ResponseError, ResponseMessage};
 
 #[derive(Debug, derive_more::Display, derive_more::Error)]
 pub enum CustomError {
     #[display(fmt = "Validation error: {}", message)]
     ValidationError { message: String },
 
-    #[display(fmt = "{}: {}", error, message)]
+    #[display(fmt = "Unauthorized: {}", message)]
     UnauthorizedError {
         realm: String,
-        error: String,
         message: String,
     },
 
@@ -37,21 +33,19 @@ impl error::ResponseError for CustomError {
     fn error_response(&self) -> HttpResponse {
         let mut builder = HttpResponse::build(self.status_code());
 
-        if let CustomError::UnauthorizedError { realm, error, message } = self {
-            builder.insert_header((
-                "WWW-Authenticate",
-                format!("Bearer realm=\"{}\", error=\"{}\", error_description=\"{}\"", realm, error, message)
-            ));
+        if let CustomError::UnauthorizedError { realm, message, .. } = self {
+            let error_message = format!("Token realm=\"{}\", error=\"Unauthorized\", error_description=\"{}\"", realm, message);
+            builder.append_header(("WWW-Authenticate", error_message.as_str()));
         }
 
+        let response_message = json!({
+            "error": {
+                "body": [self.to_string()]
+            }
+        }).to_string();
+
         builder
-            .insert_header(ContentType::json())
-            .json(ResponseMessage {
-                errors: ResponseError {
-                    body: vec![
-                        self.to_string()
-                    ]
-                }
-            })
+            .content_type(ContentType::json())
+            .body(response_message)
     }
 }

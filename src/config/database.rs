@@ -5,7 +5,7 @@ use crate::config::CONFIG;
 pub fn init_pool() -> Rbatis {
     #[cfg(debug_assertions)]
     let db_url = {
-        println!("rbatis pool init ({})...", CONFIG.DB_URL);
+        debug!("rbatis pool init ({})...", CONFIG.DB_URL);
         CONFIG.DB_URL.as_str()
     };
 

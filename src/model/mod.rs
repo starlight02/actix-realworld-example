@@ -17,14 +17,3 @@ pub struct RealWorldToken {
     pub scheme: Option<String>,
     pub token: Option<String>,
 }
-
-// 统一的错误响应
-#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
-pub struct ResponseMessage {
-    pub errors: ResponseError,
-}
-
-#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
-pub struct ResponseError {
-    pub body: Vec<String>,
-}

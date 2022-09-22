@@ -1,10 +1,9 @@
-use actix_http::body::{BoxBody};
+use actix_http::body::BoxBody;
 use actix_web::{
     dev,
     http::{StatusCode, header},
-    middleware::{ErrorHandlerResponse},
+    middleware::ErrorHandlerResponse,
 };
-use crate::model::{ResponseError, ResponseMessage};
 
 // 重新格式化 actix-web 的错误消息
 pub fn format_response<B>(mut response: dev::ServiceResponse<B>) -> actix_web::Result<ErrorHandlerResponse<B>> {
@@ -21,11 +20,11 @@ pub fn format_response<B>(mut response: dev::ServiceResponse<B>) -> actix_web::R
         None => String::from("Unknown Error")
     };
     // 格式化响应体为要求的返回格式
-    let body = serde_json::to_string(
-        &ResponseMessage {
-            errors: ResponseError { body: vec![error_message] }
+    let body = json!({
+        "error": {
+            "body": [error_message]
         }
-    ).unwrap();
+    }).to_string();
     let new_response = response.map_body(move |_head, _body| BoxBody::new(body));
 
     Ok(ErrorHandlerResponse::Response(new_response.map_into_right_body()))

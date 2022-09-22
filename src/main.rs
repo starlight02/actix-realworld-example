@@ -3,11 +3,11 @@ use actix_cors::Cors;
 use actix_web::{
     web, App, HttpServer,
     middleware::{DefaultHeaders, Logger, ErrorHandlers},
+    http::{header, StatusCode},
 };
-use actix_web::http::StatusCode;
+#[cfg(debug_assertions)]
 use log::info;
-use actix_realworld_example::{database, app_log, router, CONFIG};
-use actix_realworld_example::middleware::error;
+use actix_realworld_example::{app_middleware, database, app_log, router, CONFIG};
 
 #[tokio::main]
 async fn main() -> io::Result<()> {
@@ -16,11 +16,13 @@ async fn main() -> io::Result<()> {
     // app 状态初始化
     let data = web::Data::new(database::init_pool());
 
-    let local_ip = local_ipaddress::get().unwrap();
-
-    info!("Actix-web App Running :");
-    info!(" - Local:    http://localhost:{}", CONFIG.PORT);
-    info!(" - Network:  http://{}:{}", local_ip, CONFIG.PORT);
+    #[cfg(debug_assertions)]
+    {
+        let local_ip = local_ipaddress::get().unwrap();
+        info!("Actix-web App Running :");
+        info!("Local:    http://localhost:{}", CONFIG.PORT);
+        info!("Network:  http://{}:{}", local_ip, CONFIG.PORT);
+    }
 
     HttpServer::new(move || {
         App::new()
@@ -30,14 +32,14 @@ async fn main() -> io::Result<()> {
             // 默认响应的头部的中间件
             .wrap(DefaultHeaders::new()
                 .add(("X-Server-Version", "0.1"))
-                .add(("Content-Type", "application/json; charset=utf-8"))
+                .add(header::ContentType::json())
             )
             // CORS 中间件
             .wrap(Cors::permissive())
             // 错误处理中间件
             .wrap(
                 ErrorHandlers::new()
-                .handler(StatusCode::BAD_REQUEST, error::format_response)
+                    .handler(StatusCode::BAD_REQUEST, app_middleware::format_response)
             )
             // 配置路由
             .configure(router::router)

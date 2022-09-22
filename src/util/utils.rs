@@ -60,7 +60,6 @@ pub fn validate_token(token: &str, host: &str) -> Result<Claim, actix_web::Error
     let result = jsonwebtoken::decode::<Claim>(token, &ED25519_PUBLIC_KEY, &validation)
         .map_err(|e| CustomError::UnauthorizedError {
             realm: host.to_owned(),
-            error: "Unauthorized".to_owned(),
             message: e.to_string(),
         })?;
     debug!("Token 的载荷 => {:#?}", &result.claims);
