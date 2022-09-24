@@ -2,19 +2,19 @@ use std::borrow::BorrowMut;
 use actix_web::{web, Responder};
 use rbatis::{executor::RbatisRef, Rbatis};
 
-use crate::model::{Claim, Profile, ResponseProfile, UserFollow, UserTable};
+use crate::model::{Claim, Profile, ResponseData, UserFollow, UserTable};
 use crate::util::error::CustomError::{InternalError};
 
-#[actix_web::get("/{username}")]
+#[actix_web::get("/celeb_{username}")]
 pub async fn get_profile(path: web::Path<String>, data: web::Data<Rbatis>, claims: Claim) -> Result<impl Responder, actix_web::Error> {
     let username = path.into_inner();
     let mut rbatis = data.get_rbatis();
     let rbatis = rbatis.borrow_mut();
-    let list = UserTable::select_by_column(rbatis, "email", &username)
+    let list = UserTable::select_by_column(rbatis, "username", &username)
         .await
         .map_err(|e| InternalError { message: e.to_string() })?;
     if list.is_empty() {
-        return Ok(ResponseProfile { profile: None });
+        return Ok(ResponseData::new("profile", None::<Profile>));
     }
     let user = list.get(0).unwrap();
     //再查用户关注表
@@ -25,9 +25,9 @@ pub async fn get_profile(path: web::Path<String>, data: web::Data<Rbatis>, claim
     let profile = Profile {
         username,
         bio: user.bio.to_owned(),
-        image: user.images.to_owned(),
+        image: user.image.to_owned(),
         following: user_follow.is_some(),
     };
 
-    Ok(ResponseProfile { profile: Some(profile) })
+    Ok(ResponseData::new("profile", profile))
 }

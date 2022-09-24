@@ -2,10 +2,7 @@ use std::borrow::{BorrowMut};
 use actix_web::{web, Responder, HttpRequest, http::header};
 use rbatis::{Rbatis, executor::RbatisRef};
 
-use crate::model::{
-    LoginPayload, SignUpPayload, ResponseUser,
-    NewUser, User, UpdateUser,
-};
+use crate::model::{LoginPayload, SignUpPayload, NewUser, User, UpdateUser, ResponseData};
 use crate::service;
 use crate::util::{
     self,
@@ -52,7 +49,7 @@ pub async fn sign_up(data: web::Data<Rbatis>, payload: web::Json<SignUpPayload>)
                 username: user.username,
                 nickname: None,
                 bio: None,
-                images: None,
+                image: None,
                 token: None,
             }
         }
@@ -89,13 +86,13 @@ pub async fn sign_up(data: web::Data<Rbatis>, payload: web::Json<SignUpPayload>)
                 username: username.to_owned(),
                 nickname: None,
                 bio: None,
-                images: None,
+                image: None,
                 token: None,
             }
         }
     };
 
-    Ok(ResponseUser { user: Some(user) })
+    Ok(ResponseData::new("user", user))
 }
 
 #[actix_web::post("/login")]
@@ -139,9 +136,9 @@ pub async fn login(request: HttpRequest, data: web::Data<Rbatis>, credentials: w
         username: user.username,
         nickname: user.nickname,
         bio: user.bio,
-        images: user.images,
+        image: user.image,
         token: Some(token),
     });
 
-    Ok(ResponseUser { user })
+    Ok(ResponseData::new("user", user))
 }

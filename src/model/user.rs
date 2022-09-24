@@ -9,7 +9,7 @@ pub struct UserTable {
     pub password: String,
     pub nickname: Option<String>,
     pub bio: Option<String>,
-    pub images: Option<String>,
+    pub image: Option<String>,
     pub created_time: FastDateTime,
     pub updated_time: FastDateTime,
     pub deleted: bool,
@@ -22,7 +22,7 @@ pub struct User {
     pub username: String,
     pub nickname: Option<String>,
     pub bio: Option<String>,
-    pub images: Option<String>,
+    pub image: Option<String>,
     pub token: Option<String>,
 }
 
@@ -74,39 +74,32 @@ pub struct Profile {
     pub following: bool,
 }
 
-#[derive(Debug, serde::Serialize, serde::Deserialize)]
-pub struct ResponseUser {
-    pub user: Option<User>,
+#[derive(Debug, serde::Serialize)]
+pub struct ResponseData {
+    pub body: String,
 }
 
-// 为返回体实现 actix Responder
-impl Responder for ResponseUser {
-    type Body = actix_http::body::BoxBody;
-
-    fn respond_to(self, _request: &HttpRequest) -> HttpResponse<Self::Body> {
-        let body = serde_json::to_string(&self).unwrap();
-
-        // Create HttpResponse and set Content Type
-        HttpResponse::Ok()
-            .content_type(ContentType::json())
-            .body(body)
+impl ResponseData {
+    pub fn new<T>(property_name: &str, object: T) -> Self
+        where T: serde::Serialize
+    {
+        // 如果要获取对象的类型的字符串，可以尝试下面的方法
+        // let name = std::any::type_name::<T>();
+        Self {
+            body: json!({property_name: object}).to_string()
+        }
     }
 }
 
-#[derive(Debug, serde::Serialize, serde::Deserialize)]
-pub struct ResponseProfile {
-    pub profile: Option<Profile>,
-}
-
-impl Responder for ResponseProfile {
+// 为返回体实现 actix Responder
+impl Responder for ResponseData {
     type Body = actix_http::body::BoxBody;
 
     fn respond_to(self, _request: &HttpRequest) -> HttpResponse<Self::Body> {
-        let body = serde_json::to_string(&self).unwrap();
-
+        // Create HttpResponse and set Content Type
         HttpResponse::Ok()
             .content_type(ContentType::json())
-            .body(body)
+            .body(self.body)
     }
 }
 

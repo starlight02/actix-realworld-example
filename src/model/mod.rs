@@ -14,6 +14,6 @@ pub struct Claim {
 
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
 pub struct RealWorldToken {
-    pub scheme: Option<String>,
-    pub token: Option<String>,
+    pub scheme: String,
+    pub token: String,
 }

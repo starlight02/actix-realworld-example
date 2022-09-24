@@ -34,8 +34,9 @@ impl error::ResponseError for CustomError {
         let mut builder = HttpResponse::build(self.status_code());
 
         if let CustomError::UnauthorizedError { realm, message, .. } = self {
+            debug!("错误消息 ==> {}", message);
             let error_message = format!("Token realm=\"{}\", error=\"Unauthorized\", error_description=\"{}\"", realm, message);
-            builder.append_header(("WWW-Authenticate", error_message.as_str()));
+            builder.insert_header(("WWW-Authenticate", error_message.as_str()));
         }
 
         let response_message = json!({

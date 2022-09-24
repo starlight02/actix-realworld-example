@@ -2,7 +2,7 @@ use std::borrow::BorrowMut;
 use actix_web::{web, Responder};
 use rbatis::{executor::RbatisRef, Rbatis};
 
-use crate::model::{Claim, RealWorldToken, ResponseUser, UpdateUser, UpdateUserPayload};
+use crate::model::{Claim, RealWorldToken, ResponseData, UpdateUser, UpdateUserPayload};
 use crate::service;
 use crate::util::error::CustomError::InternalError;
 
@@ -16,7 +16,7 @@ pub async fn get_user_info(data: web::Data<Rbatis>, path: web::Path<u32>) -> Res
         .map_err(|e| InternalError { message: e.to_string() })?;
     // let data = User::select_by_column(&mut rb, field_name!(User.uid), uid).await.unwrap();
     // println!("select_all_by_id = {:?}", &user);
-    Ok(ResponseUser { user })
+    Ok(ResponseData::new("user", user))
 }
 
 #[actix_web::get("")]
@@ -24,10 +24,12 @@ pub async fn get_current_user(data: web::Data<Rbatis>, token: RealWorldToken, cl
     let data = data.into_inner();
     let rbatis = data.get_rbatis();
     let mut user = service::select_user_by_uid(rbatis, claims.id)
-        .await.map_err(|e| InternalError { message: e.to_string() })?.unwrap();
-    user.token = token.token;
-
-    Ok(ResponseUser { user: Some(user) })
+        .await
+        .map_err(|e| InternalError { message: e.to_string() })?;
+    if let Some(ref mut u) = user {
+        u.token = Some(token.token);
+    }
+    Ok(ResponseData::new("user", user))
 }
 
 #[actix_web::put("")]
@@ -46,5 +48,5 @@ pub async fn update_user(data: web::Data<Rbatis>, user: web::Json<UpdateUserPayl
     let user = service::select_user_by_uid(rbatis, claims.id)
         .await.map_err(|e| InternalError { message: e.to_string() })?.unwrap();
 
-    Ok(ResponseUser { user: Some(user) })
+    Ok(ResponseData::new("user", user))
 }
