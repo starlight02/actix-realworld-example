@@ -2,6 +2,7 @@ use actix_web::{
     HttpRequest, HttpResponse, Responder,
     http::header::ContentType,
 };
+use fancy_regex::Regex;
 
 pub mod user;
 
@@ -36,6 +37,24 @@ impl ResponseData {
         Self {
             body: json!({property_name: data}).to_string()
         }
+    }
+
+    pub fn same<T>(data: T) -> Self
+        where T: serde::Serialize
+    {
+        let type_name = std::any::type_name::<T>();
+        let list: Vec<&str> = type_name.rsplitn(2, "::").collect();
+        let type_name = list[0].replace('>', "").to_lowercase();
+        let regex = Regex::new(r"^(?<=<).+?(?=>)$").unwrap();
+        let result = regex.find(&type_name);
+        let type_name = match result {
+            Err(_) => &type_name,
+            Ok(option) => match option {
+                None => &type_name,
+                Some(m) => m.as_str()
+            }
+        };
+        Self::new(type_name, data)
     }
 }
 
