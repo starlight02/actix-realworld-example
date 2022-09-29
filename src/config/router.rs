@@ -21,7 +21,7 @@ pub fn router(config: &mut ServiceConfig) {
             .service(
                 web::scope("/profiles")
                     .service(profile::get_profile)
-                    .wrap(HttpAuthentication::with_fn(middleware::auth::validator))
+                    // .wrap(HttpAuthentication::with_fn(middleware::auth::validator))
             )
     );
 }

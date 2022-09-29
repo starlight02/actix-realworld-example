@@ -6,7 +6,7 @@ use crate::model::{Claim, Profile, ResponseData, UserFollow, UserTable};
 use crate::util::error::CustomError::{InternalError};
 
 #[actix_web::get("/celeb_{username}")]
-pub async fn get_profile(path: web::Path<String>, data: web::Data<Rbatis>, claims: Claim) -> Result<impl Responder, actix_web::Error> {
+pub async fn get_profile(path: web::Path<String>, data: web::Data<Rbatis>, claim: actix_web::Result<Claim>) -> Result<impl Responder, actix_web::Error> {
     let username = path.into_inner();
     let mut rbatis = data.get_rbatis();
     let rbatis = rbatis.borrow_mut();
@@ -17,16 +17,22 @@ pub async fn get_profile(path: web::Path<String>, data: web::Data<Rbatis>, claim
         return Ok(ResponseData::new("profile", None::<Profile>));
     }
     let user = list.get(0).unwrap();
-    //再查用户关注表
-    let user_follow = UserFollow::select_follow(rbatis, claims.id, user.uid)
-        .await
-        .map_err(|e| InternalError { message: e.to_string() })?;
+    let following = match claim {
+        Err(_) => false,
+        Ok(claim) => {
+            //再查用户关注表
+            let user_follow = UserFollow::select_follow(rbatis, claim.id, user.uid)
+                .await
+                .map_err(|e| InternalError { message: e.to_string() })?;
 
+            user_follow.is_some()
+        }
+    };
     let profile = Profile {
         username,
+        following,
         bio: user.bio.to_owned(),
         image: user.image.to_owned(),
-        following: user_follow.is_some(),
     };
 
     Ok(ResponseData::new("profile", profile))
