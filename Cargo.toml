@@ -9,8 +9,8 @@ edition = "2021"
 [dependencies]
 # 基本
 futures-util = "^0.3"
-actix-web = { version = "^4.2", default-features = false, features = ["macros"] }
-actix-http = "^3.2.1"
+actix-web = "^4.2"
+actix-http = "^3.2"
 actix-cors = "^0.6"
 actix-web-httpauth = "^0.8"
 tokio = { version = "^1", features = ["full"] }

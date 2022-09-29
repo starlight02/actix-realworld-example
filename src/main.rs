@@ -4,6 +4,7 @@ use actix_web::{
     web, App, HttpServer,
     middleware::{DefaultHeaders, Logger, ErrorHandlers},
     http::{header, StatusCode},
+    middleware::{Compress},
 };
 #[cfg(debug_assertions)]
 use log::info;
@@ -41,6 +42,7 @@ async fn main() -> io::Result<()> {
                 ErrorHandlers::new()
                     .handler(StatusCode::BAD_REQUEST, app_middleware::format_response)
             )
+            .wrap(Compress::default())
             // 配置路由
             .configure(router::router)
     })
