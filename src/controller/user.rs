@@ -6,7 +6,7 @@ use crate::model::{Claim, RealWorldToken, ResponseData, UpdateUser, UpdateUserPa
 use crate::service;
 use crate::util::error::CustomError::InternalError;
 
-#[actix_web::get("/{uid}")]
+#[get("/{uid}")]
 pub async fn get_user_info(data: web::Data<Rbatis>, path: web::Path<u32>) -> Result<impl Responder, actix_web::Error> {
     let uid = path.into_inner();
     let rbatis = data.get_rbatis();
@@ -19,7 +19,7 @@ pub async fn get_user_info(data: web::Data<Rbatis>, path: web::Path<u32>) -> Res
     Ok(ResponseData::new("user", user))
 }
 
-#[actix_web::get("")]
+#[get("")]
 pub async fn get_current_user(data: web::Data<Rbatis>, token: RealWorldToken, claims: Claim) -> Result<impl Responder, actix_web::Error> {
     let data = data.into_inner();
     let rbatis = data.get_rbatis();
@@ -32,7 +32,7 @@ pub async fn get_current_user(data: web::Data<Rbatis>, token: RealWorldToken, cl
     Ok(ResponseData::new("user", user))
 }
 
-#[actix_web::put("")]
+#[put("")]
 pub async fn update_user(data: web::Data<Rbatis>, user: web::Json<UpdateUserPayload>, claims: Claim) -> impl Responder {
     let data = data.into_inner();
     let mut rbatis = data.get_rbatis();

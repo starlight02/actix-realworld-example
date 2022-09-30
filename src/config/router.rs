@@ -18,10 +18,16 @@ pub fn router(config: &mut ServiceConfig) {
                     .service(user::get_current_user)
                     .service(user::update_user)
             )
+            // FIXME: Same prefix but no authentication required
+            .service(
+                web::resource("/profiles/celeb_{username}")
+                    .route(web::get().to(profile::get_profile))
+            )
             .service(
                 web::scope("/profiles")
-                    .service(profile::get_profile)
-                    // .wrap(HttpAuthentication::with_fn(middleware::auth::validator))
+                    .wrap(HttpAuthentication::with_fn(middleware::auth::validator))
+                    .service(profile::follow_user)
+                    .service(profile::unfollow_user)
             )
     );
 }

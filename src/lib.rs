@@ -1,6 +1,8 @@
 #![feature(is_some_with)]
 #![feature(option_result_contains)]
 #[macro_use]
+extern crate actix_web;
+#[macro_use]
 extern crate rbatis;
 #[macro_use]
 extern crate log;

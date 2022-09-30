@@ -11,7 +11,7 @@ use crate::util::{
     }
 };
 
-#[actix_web::post("")]
+#[post("")]
 pub async fn sign_up(data: web::Data<Rbatis>, payload: web::Json<SignUpPayload>) -> impl Responder {
     let payload = payload.into_inner();
     let NewUser { email, username, password } = payload.user.to_owned();
@@ -95,7 +95,7 @@ pub async fn sign_up(data: web::Data<Rbatis>, payload: web::Json<SignUpPayload>)
     Ok(ResponseData::new("user", user))
 }
 
-#[actix_web::post("/login")]
+#[post("/login")]
 pub async fn login(request: HttpRequest, data: web::Data<Rbatis>, credentials: web::Json<LoginPayload>) -> impl Responder {
     let credentials = credentials.into_inner().user;
     let email = credentials.email.trim();

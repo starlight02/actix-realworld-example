@@ -5,8 +5,7 @@ use rbatis::{executor::RbatisRef, Rbatis};
 use crate::model::{Claim, Profile, ResponseData, User, UserFollow};
 use crate::util::error::CustomError::{InternalError, ValidationError};
 
-#[actix_web::get("/celeb_{username}")]
-pub async fn get_profile(path: web::Path<String>, data: web::Data<Rbatis>, claim: actix_web::Result<Claim>) -> Result<impl Responder, actix_web::Error> {
+pub async fn get_profile(path: web::Path<String>, data: web::Data<Rbatis>, claim: actix_web::Result<Claim>) -> actix_web::Result<impl Responder> {
     let username = path.into_inner();
     let mut rbatis = data.get_rbatis();
     let rbatis = rbatis.borrow_mut();
@@ -38,7 +37,7 @@ pub async fn get_profile(path: web::Path<String>, data: web::Data<Rbatis>, claim
     Ok(ResponseData::new("profile", profile))
 }
 
-#[actix_web::post("/celeb_{username}/follow")]
+#[post("/celeb_{username}/follow")]
 pub async fn follow_user(path: web::Path<String>, data: web::Data<Rbatis>, claim: Claim) -> impl Responder {
     let username = path.into_inner();
     let mut rbatis = data.get_rbatis();
@@ -69,7 +68,8 @@ pub async fn follow_user(path: web::Path<String>, data: web::Data<Rbatis>, claim
     Ok(ResponseData::same(profile))
 }
 
-#[actix_web::delete("/celeb_{username}/follow")]
+// #[routes]
+#[delete("/celeb_{username}/follow")]
 pub async fn unfollow_user(path: web::Path<String>, data: web::Data<Rbatis>, claim: Claim) -> impl Responder {
     let username = path.into_inner();
     let mut rbatis = data.get_rbatis();
