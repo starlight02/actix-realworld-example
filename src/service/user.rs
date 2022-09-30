@@ -1,6 +1,14 @@
 use rbatis::{Rbatis};
 use rbs::to_value;
-use crate::model::user::{NewUser, UpdateUser, User, UserTable, LoginCredentials};
+use crate::model::user::{NewUser, UpdateUser, User, UserTable, UserFollow, LoginCredentials};
+
+impl_update!(UpdateUser {}, r#""user""#);
+impl_select!(UserTable {}, r#""user""#);
+impl_select!(User {select_user_by_uid(table_name:&str,uid:u32) -> Option => "`WHERE uid = #{uid} AND deleted = false`" });
+impl_select!(User {select_user_by_email(table_name:&str,uname:&str) -> Option => "`WHERE username = #{uname} AND deleted = false`" });
+impl_select!(UserFollow {select_follow(uid:u32, follow_uid:u32) -> Option => "`WHERE uid = #{uid} AND follow_uid = #{follow_uid}`"});
+impl_insert!(UserFollow {});
+impl_delete!(UserFollow {delete_follow(uid:u32, follow_uid:u32) => "`WHERE uid = #{uid} AND follow_uid = #{follow_uid}`"});
 
 /// 通过 uid 查询正常用户
 pub async fn select_user_by_uid(rb: &Rbatis, uid: u32) -> Result<Option<User>, rbatis::Error> {

@@ -78,7 +78,3 @@ pub struct UserFollow {
     pub uid: u32,
     pub follow_uid: u32,
 }
-
-impl_update!(UpdateUser {}, r#""user""#);
-impl_select!(UserTable {}, r#""user""#);
-impl_select!(UserFollow {select_follow(uid:u32, follow_uid:u32) -> Option => "`WHERE uid = #{uid} AND follow_uid = #{follow_uid}`"});
