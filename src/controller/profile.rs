@@ -40,6 +40,7 @@ pub async fn get_profile(path: web::Path<String>, data: web::Data<Rbatis>, claim
 #[post("/celeb_{username}/follow")]
 pub async fn follow_user(path: web::Path<String>, data: web::Data<Rbatis>, claim: Claim) -> impl Responder {
     let username = path.into_inner();
+    let current_uid = claim.id;
     let mut rbatis = data.get_rbatis();
     let rbatis = rbatis.borrow_mut();
 
@@ -51,7 +52,18 @@ pub async fn follow_user(path: web::Path<String>, data: web::Data<Rbatis>, claim
     }
 
     let User { uid, bio, image, .. } = user.unwrap();
-    let user_follow = UserFollow { uid: claim.id, follow_uid: uid };
+    if uid == current_uid {
+        return Err(ValidationError { message: "Cannot follow yourself".to_owned() });
+    }
+
+    let user_follow = UserFollow::select_follow(rbatis, current_uid, uid)
+        .await
+        .map_err(|e| InternalError { message: e.to_string() })?;
+    if user_follow.is_some() {
+        return Err(ValidationError { message: "Cannot follow the same user repeatedly".to_owned() });
+    }
+
+    let user_follow = UserFollow { uid: current_uid, follow_uid: uid };
     let result = UserFollow::insert(rbatis, &user_follow)
         .await
         .map_err(|e| InternalError { message: e.to_string() })?;
@@ -68,7 +80,6 @@ pub async fn follow_user(path: web::Path<String>, data: web::Data<Rbatis>, claim
     Ok(ResponseData::same(profile))
 }
 
-// #[routes]
 #[delete("/celeb_{username}/follow")]
 pub async fn unfollow_user(path: web::Path<String>, data: web::Data<Rbatis>, claim: Claim) -> impl Responder {
     let username = path.into_inner();
@@ -82,17 +93,27 @@ pub async fn unfollow_user(path: web::Path<String>, data: web::Data<Rbatis>, cla
         return Err(ValidationError { message: "The user does not exist".to_owned() });
     }
     let User { uid, bio, image, .. } = user.unwrap();
+    if claim.id == uid {
+        return Err(ValidationError { message: "Cannot unfollow yourself".to_owned() });
+    }
+    let user_follow = UserFollow::select_follow(rbatis, claim.id, uid)
+        .await
+        .map_err(|e| InternalError { message: e.to_string() })?;
+    if user_follow.is_none() {
+        return Err(ValidationError { message: "Not following the user".to_owned() });
+    }
+
     let result = UserFollow::delete_follow(rbatis, claim.id, uid)
         .await
         .map_err(|e| InternalError { message: e.to_string() })?;
     if result.rows_affected < 1 {
-        return Err(ValidationError { message: "Not following the user".to_owned() });
+        return Err(InternalError { message: "Unfollow may not be successful".to_owned() });
     }
     let profile = Profile {
         username,
         bio,
         image,
-        following: true,
+        following: false,
     };
 
     Ok(ResponseData::same(profile))
