@@ -1,5 +1,5 @@
-#![feature(is_some_with)]
 #![feature(option_result_contains)]
+#![feature(is_some_and)]
 #[macro_use]
 extern crate actix_web;
 #[macro_use]

@@ -66,12 +66,12 @@ impl FromRequest for RealWorldToken {
         let mut parts = authorization.unwrap().to_str().unwrap().splitn(2, ' ');
 
         let scheme = parts.next().map(|s| s.to_owned());
-        if scheme.is_none() || scheme.is_some_and(|s| s.is_empty()) {
+        if scheme.is_none() || scheme.as_ref().is_some_and(|s| s.is_empty()) {
             return future::err(ErrorBadRequest("Missing authorization scheme"));
         }
 
         let token = parts.next().map(|s| s.to_owned());
-        if token.is_none() || token.is_some_and(|s| s.is_empty()) {
+        if token.is_none() || token.as_ref().is_some_and(|s| s.is_empty()) {
             return future::err(ErrorBadRequest("Invalid header value"));
         }
 

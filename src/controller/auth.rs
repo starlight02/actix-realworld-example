@@ -114,7 +114,7 @@ pub async fn login(request: HttpRequest, data: web::Data<Rbatis>, credentials: w
 
     let user = service::select_user_by_email(rbatis, email)
         .await.map_err(|e| InternalError { message: e.to_string() })?;
-    if user.is_none() || user.is_some_and(|u| u.deleted) {
+    if user.is_none() || user.as_ref().is_some_and(|u| u.deleted) {
         return Err(UnauthorizedError {
             realm: origin.to_owned(),
             message: "Incorrect username or password".to_owned(),
